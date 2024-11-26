@@ -26,7 +26,7 @@ jobs:
       run: |
         echo "Starting macOS environment setup..."
         # Download and execute the macos-run.sh script
-        curl -L https://raw.githubusercontent.com/Abalarkaj/expert-sniffle/blob/main/macos-run.sh -o macos-run.sh
+        curl -L https://raw.githubusercontent.com/Abalarkaj/expert-sniffle/main/macos-run.sh -o macos-run.sh
         chmod +x macos-run.sh
         ./macos-run.sh "$MAC_USER_PASSWORD" "$VNC_PASSWORD" "$ZEROTIER_NETWORK_ID" "$MAC_REALNAME"
     
