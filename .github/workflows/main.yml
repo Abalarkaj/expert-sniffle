@@ -13,10 +13,10 @@ jobs:
     runs-on: macos-latest
 
     steps:
-    # Checkout the repository (optional, depends on your setup)
+    # Checkout the repository (optional)
     - uses: actions/checkout@v2
 
-    # Set up the environment (ZeroTier and VNC)
+    # Set up the environment
     - name: Set up MacOS environment
       env:
         MAC_USER_PASSWORD: ${{ secrets.MAC_USER_PASSWORD }}
@@ -25,15 +25,15 @@ jobs:
         MAC_REALNAME: ${{ secrets.MAC_REALNAME }}
       run: |
         echo "Starting macOS environment setup..."
-        # Download and execute the macos-run.sh script
         curl -L https://raw.githubusercontent.com/Abalarkaj/expert-sniffle/main/macos-run.sh -o macos-run.sh
         chmod +x macos-run.sh
         ./macos-run.sh "$MAC_USER_PASSWORD" "$VNC_PASSWORD" "$ZEROTIER_NETWORK_ID" "$MAC_REALNAME"
     
-    # Output ZeroTier IP Address for VNC access
+    # Output ZeroTier IP Address
     - name: Get ZeroTier IP Address
       run: |
         echo "ZeroTier IP address is:"
         # Assuming macos-run.sh outputs the IP address in the previous step
         echo "${{ steps.build.outputs.zerotier_ip }}"
 
+    # Keep the MacOS instance alive
