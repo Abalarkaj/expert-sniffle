@@ -1,0 +1,59 @@
+name: MacOS
+on: 
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build:
+    name: MacOS Build
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Setting Up the MacOS Environment
+      env:
+        ZEROTIER_NETWORK_ID: ${{ secrets.ZEROTIER_NETWORK_ID }}
+        MAC_USER_PASSWORD: ${{ secrets.MAC_USER_PASSWORD }}
+        VNC_PASSWORD: ${{ secrets.VNC_PASSWORD }}
+        MAC_REALNAME: ${{ secrets.MAC_REALNAME }}
+      run: |
+        # Install ZeroTier on the macOS runner
+        echo "Installing ZeroTier..."
+        brew install zerotier-one
+
+        # Join the ZeroTier Network using the network ID
+        echo "Joining ZeroTier Network..."
+        sudo zerotier-cli join $ZEROTIER_NETWORK_ID
+
+        # Wait for ZeroTier to establish connection
+        echo "Waiting for ZeroTier connection to be established..."
+        sleep 10  # Sleep for 10 seconds to allow connection
+
+        # Retrieve ZeroTier IP Address
+        ZERO_TIER_IP=$(sudo zerotier-cli listnetworks | grep "10." | awk '{print $3}')
+        echo "ZeroTier IP Address: $ZERO_TIER_IP"
+        
+        # Store the ZeroTier IP address for future steps
+        echo "::set-output name=zerotier_ip::$ZERO_TIER_IP"
+
+    - name: Connecting MacOS to VNC using ZeroTier IP
+      run: |
+        # Output the ZeroTier IP Address for easy reference
+        echo "The ZeroTier IP Address is: ${{ steps.build.outputs.zerotier_ip }}"
+
+        # You can now use the ZeroTier IP to connect to the VNC server
+        # The following step assumes you have VNC running and accessible on the macOS system.
+        # Example: Connect using any VNC client (e.g., RealVNC, TigerVNC, RVNC) with the IP address.
+
+    - name: Keep Running MacOS System (keep alive for 6 hours)
+      uses: mxschmitt/action-tmate@v2
+      with:
+        tmate_pty: true
+        run: |
+         echo "Keeping the macOS system alive for further actions"
+         # Sleep for 6 hours (21,600 seconds)
+         sleep 21600  # 6 hours in seconds
