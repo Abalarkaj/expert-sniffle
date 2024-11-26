@@ -1,5 +1,6 @@
-name: MacOS
-on: 
+name: MacOS Setup with ZeroTier and VNC
+
+on:
   workflow_dispatch:
 
 defaults:
@@ -8,62 +9,31 @@ defaults:
 
 jobs:
   build:
-    name: MacOS Build
+    name: MacOS Build and VNC Setup
     runs-on: macos-latest
 
     steps:
+    # Checkout the repository (optional, depends on your setup)
     - uses: actions/checkout@v2
 
-    - name: Setting Up the MacOS Environment
+    # Set up the environment (ZeroTier and VNC)
+    - name: Set up MacOS environment
       env:
-        ZEROTIER_NETWORK_ID: ${{ secrets.ZEROTIER_NETWORK_ID }}
         MAC_USER_PASSWORD: ${{ secrets.MAC_USER_PASSWORD }}
         VNC_PASSWORD: ${{ secrets.VNC_PASSWORD }}
+        ZEROTIER_NETWORK_ID: ${{ secrets.ZEROTIER_NETWORK_ID }}
         MAC_REALNAME: ${{ secrets.MAC_REALNAME }}
       run: |
-        echo "Starting macOS environment setup"
-        
-        # Install ZeroTier
-        echo "Installing ZeroTier..."
-        brew install zerotier-one || { echo "ZeroTier installation failed!"; exit 1; }
-        echo "ZeroTier installed successfully."
-        
-        # Verify ZeroTier installation
-        which zerotier-cli
-        if [ $? -ne 0 ]; then
-          echo "ZeroTier CLI not found, installation failed!"
-          exit 1
-        fi
-        
-        # Join the ZeroTier network
-        echo "Joining ZeroTier Network..."
-        sudo zerotier-cli join $ZEROTIER_NETWORK_ID
-        if [ $? -ne 0 ]; then
-          echo "Failed to join ZeroTier network!"
-          exit 1
-        else
-          echo "Successfully joined ZeroTier network."
-        fi
-        
-        # Wait for ZeroTier connection to establish
-        echo "Waiting for ZeroTier connection..."
-        sleep 10
-
-        # Retrieve ZeroTier IP Address
-        ZERO_TIER_IP=$(sudo zerotier-cli listnetworks | grep "10." | awk '{print $3}')
-        if [ -z "$ZERO_TIER_IP" ]; then
-          echo "ZeroTier IP address not found!"
-          exit 1
-        else
-          echo "ZeroTier IP Address: $ZERO_TIER_IP"
-        fi
-        
-        # Store the ZeroTier IP address as an output
-        echo "::set-output name=zerotier_ip::$ZERO_TIER_IP"
-
-    - name: Connecting MacOS to VNC using ZeroTier IP
+        echo "Starting macOS environment setup..."
+        # Download and execute the macos-run.sh script
+        curl -L https://raw.githubusercontent.com/your-repo/your-project/main/macos-run.sh -o macos-run.sh
+        chmod +x macos-run.sh
+        ./macos-run.sh "$MAC_USER_PASSWORD" "$VNC_PASSWORD" "$ZEROTIER_NETWORK_ID" "$MAC_REALNAME"
+    
+    # Output ZeroTier IP Address for VNC access
+    - name: Get ZeroTier IP Address
       run: |
-        echo "Connecting to MacOS VNC using ZeroTier IP"
-        echo "ZeroTier IP Address is: ${{ steps.build.outputs.zerotier_ip }}"
-        
-        # Placeholder for actual VNC connection logic
+        echo "ZeroTier IP address is:"
+        # Assuming macos-run.sh outputs the IP address in the previous step
+        echo "${{ steps.build.outputs.zerotier_ip }}"
+
